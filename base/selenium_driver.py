@@ -1,58 +1,105 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from pages.home.login_page import LoginPage
-import unittest
-import pytest
+from traceback import print_stack
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import *
 
+class SeleniumDriver():
 
-class LoginTests(unittest.TestCase):
-    baseURL = "http://automationpractice.com/index.php"
-    driver = webdriver.Chrome(executable_path="C:\\Users\\ASUS\\Desktop\\Selenium\\drivers\\chromedriver.exe")
-    driver.maximize_window()
-    driver.implicitly_wait(3)
-    driver.get(baseURL)
-    lp = LoginPage(driver)
+    def __init__(self, driver):
+        self.driver = driver
 
-    @pytest.mark.run(order=2)
-    def test_validLogin(self):
-        self.driver.get(self.baseURL)
-        self.lp.login("automationtest12345@gmail.com", "test123")
-        result = self.lp.verifyLoginSuccessful()
+    # def getTitle(self):
+    #     self.driver = self.driver.title
 
-        assert result == True
-        self.driver.quit()
+    def getByType(self, locatorType):
+        locatorType = locatorType.lower()
+        if locatorType == "id":
+            return By.ID
+        elif locatorType == "name":
+            return By.NAME
+        elif locatorType == "xpath":
+            return By.XPATH
+        elif locatorType == "css":
+            return By.CSS_SELECTOR
+        elif locatorType == "classname":
+            return By.CLASS_NAME
+        elif locatorType == "linktext":
+            return By.LINK_TEXT
+        else:
+            print("Locator type " + locatorType + " not correct/supported")
+        return False
 
-        # LoginLink = driver.find_element(By.LINK_TEXT, "Sign in")
-        # LoginLink.click()
-        #
-        # emailField = driver.find_element(By.ID, "email")
-        # emailField.send_keys("automationtest12345@gmail.com")
-        #
-        # passwordField = driver.find_element(By.ID, "passwd")
-        # passwordField.send_keys("test123")
-        #
-        # loginButton = driver.find_element(By.ID, "SubmitLogin")
-        # loginButton.click()
+    def getElement(self, locator, locatorType="id"):
+        element = None
+        try:
+            locatorType = locatorType.lower()
+            byType = self.getByType(locatorType)
+            element = self.driver.find_element(byType, locator)
+            print("Element Found with locator:"+ locator + " and locator type: "+ locatorType)
+        except:
+            print("Element not with locator:"+ locator + " and locator type: "+ locatorType)
+        return element
 
-        # !! This is to confirm that we logged in should be diferent if logged in with different account
-        # userName = driver.find_element(By.XPATH, "/html//header[@id='header']//nav//a[@title='View my customer account']/span[.='automation test']")
-        # if userName is not None:
-        #     print("Successfully logged in")
-        # else:
-        #     print("Failed to login")
+    def elementClick(self, locator, locatorType="id"):
+        try:
+            element = self.getElement(locator, locatorType)
+            element.click()
+            print("Clicked on element with locator: " + locator + " locatorType: " + locatorType)
+        except:
+            print("Cannot click on the element with locator: " + locator + " locatorType: " + locatorType)
+            print_stack()
 
-    @pytest.mark.run(order=1)
-    def test_invalidLogin(self):
-        self.driver.get(self.baseURL)
+    def sendKeys(self, data, locator, locatorType="id"):
+        try:
+            element = self.getElement(locator, locatorType)
+            element.send_keys(data)
+            print("Send data on element with locator: " + locator + " locatorType: " + locatorType)
+        except:
+            print("Cannot send data the element with locator: " + locator + " locatorType: " + locatorType)
+            print_stack()
 
-        self.lp.login("automationtest12345@gmail.com", "testWithInvalidPassword")
-        result = self.lp.verifyLoginFailed()
+    def isElementPresent(self, locator, locatorType="id"):
+        try:
+            element = self.getElement(locator, locatorType)
+            if element is not None:
+                print("Element Found")
+                return True
+            else:
+                print("Element not found")
+                return False
+        except:
+            print("Element not found")
+            return False
 
-        assert result == False
+    def elementPresenceCheck(self, locator, byType):
+        try:
+            elementList = self.driver.find_elements(byType, locator)
+            if len(elementList) > 0:
+                print("Element Found")
+                return True
+            else:
+                print("Element not found")
+                return False
+        except:
+            print("Element not found")
+            return False
 
-
-# ff = LoginTests()
-# ff.test_validLogin()
-# ff.test_invalidLogin()
-if __name__ == "__main__":
-    unittest.main()
+    def waitForElement(self, locator, locatorType="id",
+                               timeout=10, pollFrequency=0.5):
+        element = None
+        try:
+            byType = self.getByType(locatorType)
+            print("Waiting for maximum :: " + str(timeout) +
+                  " :: seconds for element to be clickable")
+            wait = WebDriverWait(self.driver, 10, poll_frequency=1,
+                                 ignored_exceptions=[NoSuchElementException,
+                                                     ElementNotVisibleException,
+                                                     ElementNotSelectableException])
+            element = wait.until(EC.element_to_be_clickable((byType,
+                                                             "stopFilter_stops-0")))
+            print("Element appeared on the web page")
+        except:
+            print("Element not appeared on the web page")
+            print_stack()
+        return element
