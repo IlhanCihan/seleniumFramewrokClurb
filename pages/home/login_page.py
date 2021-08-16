@@ -38,8 +38,29 @@ class LoginPage(SeleniumDriver):
         self.elementClick(self._login_button, locatorType="name")
 
 
-    def login(self, email, password):
+    def login(self, email="", password=""):
         self.clickLoginLink()
+        self.clearFields()
         self.enterEmail(email)
         self.enterPassword(password)
         self.clickLoginButton()
+
+    def verifyLoginSuccessful(self):
+        result = self.isElementPresent("/html//header[@id='header']//nav//a[@title='View my customer account']/span[.='automation test']", locatorType="xpath")
+        return result
+
+    def verifyLoginFailed(self):
+        result = self.isElementPresent("//?/p[@innertext='There is 1 error']", locatorType="xpath")
+        return result
+
+    def clearFields(self):
+        emailField =  self.getElement(locator=self._email_field)
+        emailField.clear()
+        passwordField = self.getElement(locator=self._password_field)
+        passwordField.clear()
+
+    # def verifyTitle(self):
+    #     if "Automation Practice Website" in self.getTitle():
+    #         return True
+    #     else:
+    #         return False
