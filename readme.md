@@ -11,6 +11,3 @@ practice Selenium
 How to use it: You should include chrome driver with right executable path in order for it to run
 
 Python version: Python 3.9.1
-
-Operating System: Microsoft Windows
-
